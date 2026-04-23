@@ -36,7 +36,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBOzzaPBhtRMEbDuNZUbPtxlwrJrK8exYE",
@@ -49,6 +49,31 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // Fungsi untuk menyuntikkan script head dari CMS
+        async function injectHeadScripts() {
+            try {
+                const scriptsDoc = await getDoc(doc(db, "settings", "scripts"));
+                if (scriptsDoc.exists() && scriptsDoc.data().headCode) {
+                    const headCode = scriptsDoc.data().headCode;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = headCode;
+                    
+                    Array.from(tempDiv.childNodes).forEach(node => {
+                        if (node.nodeName === 'SCRIPT') {
+                            const script = document.createElement('script');
+                            Array.from(node.attributes).forEach(attr => script.setAttribute(attr.name, attr.value));
+                            script.textContent = node.textContent;
+                            document.head.appendChild(script);
+                        } else {
+                            document.head.appendChild(node.cloneNode(true));
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error injecting head scripts: ", error);
+            }
+        }
 
         async function loadSingleArticle() {
             const params = new URLSearchParams(window.location.search);
@@ -93,6 +118,7 @@
         }
 
         loadSingleArticle();
+        injectHeadScripts();
     </script>
 </body>
 </html>

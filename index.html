@@ -142,6 +142,31 @@
             }
         }
 
+        // Fungsi untuk menyuntikkan script head dari CMS
+        async function injectHeadScripts() {
+            try {
+                const scriptsDoc = await getDoc(doc(db, "settings", "scripts"));
+                if (scriptsDoc.exists() && scriptsDoc.data().headCode) {
+                    const headCode = scriptsDoc.data().headCode;
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = headCode;
+                    
+                    Array.from(tempDiv.childNodes).forEach(node => {
+                        if (node.nodeName === 'SCRIPT') {
+                            const script = document.createElement('script');
+                            Array.from(node.attributes).forEach(attr => script.setAttribute(attr.name, attr.value));
+                            script.textContent = node.textContent;
+                            document.head.appendChild(script);
+                        } else {
+                            document.head.appendChild(node.cloneNode(true));
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("Error injecting head scripts: ", error);
+            }
+        }
+
         // Fungsi untuk mengambil data Hero
         async function loadHero() {
             try {
@@ -166,6 +191,7 @@
         loadArticles();
         loadMitra();
         loadHero();
+        injectHeadScripts();
     </script>
 
     <style>
