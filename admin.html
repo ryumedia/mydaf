@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin CMS - MyDAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="loading-initial" class="fixed inset-0 bg-gray-100 flex items-center justify-center z-50">
+        <div class="text-center text-gray-600">
+            <i class="fas fa-spinner fa-spin text-4xl mb-4"></i>
+            <p>Memuat Admin Panel...</p>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <section id="login-section" class="hidden flex items-center justify-center min-h-screen bg-gray-100">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Login Admin MyDAF</h2>
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="login-email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#311105] focus:border-[#311105]">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="login-password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#311105] focus:border-[#311105]">
+                </div>
+                <p id="login-error" class="text-red-500 text-sm hidden"></p>
+                <button type="submit" class="w-full bg-[#311105] text-white py-2 rounded-lg hover:bg-black transition font-semibold">Login</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Admin Content (Hidden by default, shown after login) -->
+    <div id="admin-content" class="hidden">
+        <nav class="bg-[#311105] text-white shadow-lg">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fas fa-tools"></i> MyDAF Admin Panel
+                </h1>
+                <div class="flex items-center gap-4">
+                    <span id="user-email" class="text-sm text-gray-300 hidden md:block"></span>
+                    <a href="index.html" class="text-sm hover:underline italic">Lihat Landing Page</a>
+                    <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-1 rounded-md transition">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-8">
+            <!-- Navigasi Tab -->
+            <div class="flex gap-4 mb-8 bg-white p-2 rounded-lg shadow-sm max-w-md mx-auto">
+                <button onclick="switchTab('menu')" id="btn-tab-menu" class="flex-1 py-2 rounded-md bg-[#311105] text-white font-bold transition">Kelola Menu</button>
+                <button onclick="switchTab('testi')" id="btn-tab-testi" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Testimoni</button>
+                <button onclick="switchTab('artikel')" id="btn-tab-artikel" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Artikel</button>
+                <button onclick="switchTab('mitra')" id="btn-tab-mitra" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Mitra</button>
+            </div>
+
+            <!-- SECTION KELOLA MENU -->
+            <div id="section-menu" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Form Input Menu -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                        <h2 id="form-title" class="text-xl font-bold mb-6 text-gray-800">Tambah Menu Baru</h2>
+                        <form id="menu-form" class="space-y-4">
+                            <input type="hidden" id="menu-id">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama Paket</label>
+                                <input type="text" id="title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#311105] focus:border-[#311105]">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Harga (Angka saja)</label>
+                                <input type="number" id="price" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Upload Gambar</label>
+                                <input type="file" id="image-input" accept="image/*" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-[#311105] file:text-white hover:file:bg-black cursor-pointer">
+                                <div id="image-preview-container" class="mt-2 hidden">
+                                    <p class="text-xs text-gray-500 mb-1">Preview Gambar:</p>
+                                    <img id="image-preview" src="" class="w-full h-32 object-cover rounded-lg border">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                                <textarea id="description" rows="3" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" id="isBestSeller" class="h-4 w-4 text-[#311105] focus:ring-[#311105] border-gray-300 rounded">
+                                <label for="isBestSeller" class="ml-2 block text-sm text-gray-900">Tandai sebagai Best Seller</label>
+                            </div>
+                            <div class="flex gap-2 pt-4">
+                                <button type="submit" id="btn-submit" class="flex-1 bg-[#311105] text-white py-2 rounded-lg hover:bg-black transition font-semibold">Simpan Menu</button>
+                                <button type="button" id="btn-cancel" class="hidden flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition">Batal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Daftar Menu -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h2 class="text-xl font-bold text-gray-800">Daftar Menu Saat Ini</h2>
+                            <span id="item-count" class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">0 Item</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="bg-gray-50 text-gray-600 text-sm uppercase">
+                                    <tr>
+                                        <th class="px-6 py-3">Menu</th>
+                                        <th class="px-6 py-3">Harga</th>
+                                        <th class="px-6 py-3">Status</th>
+                                        <th class="px-6 py-3 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="menu-table-body" class="divide-y divide-gray-100">
+                                    <!-- Data akan dimuat di sini -->
+                                </tbody>
+                            </table>
+                            <div id="loading-state" class="p-10 text-center text-gray-500">
+                                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                                <p>Mengambil data dari Firestore...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION KELOLA TESTIMONI -->
+            <div id="section-testi" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+                <!-- Form Testimoni -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                        <h2 id="testi-form-title" class="text-xl font-bold mb-6 text-gray-800">Tambah Testimoni</h2>
+                        <form id="testi-form" class="space-y-4">
+                            <input type="hidden" id="testi-id">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama Pelanggan</label>
+                                <input type="text" id="testi-name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Pekerjaan/Perusahaan</label>
+                                <input type="text" id="testi-role" required placeholder="Contoh: HR Manager" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Rating (1-5)</label>
+                                <select id="testi-rating" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                                    <option value="5">⭐⭐⭐⭐⭐ (5 Bintang)</option>
+                                    <option value="4">⭐⭐⭐⭐ (4 Bintang)</option>
+                                    <option value="3">⭐⭐⭐ (3 Bintang)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Isi Testimoni</label>
+                                <textarea id="testi-content" rows="4" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
+                            </div>
+                            <div class="flex gap-2 pt-4">
+                                <button type="submit" id="btn-testi-submit" class="flex-1 bg-[#311105] text-white py-2 rounded-lg font-semibold">Simpan</button>
+                                <button type="button" id="btn-testi-cancel" class="hidden flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">Batal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Tabel Testimoni -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-600 text-sm uppercase">
+                                <tr>
+                                    <th class="px-6 py-3">Nama & Peran</th>
+                                    <th class="px-6 py-3">Komentar</th>
+                                    <th class="px-6 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testi-table-body" class="divide-y divide-gray-100">
+                                <!-- Data dimuat di sini -->
+                            </tbody>
+                        </table>
+                        <div id="testi-loading" class="p-10 text-center text-gray-400">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Memuat testimoni...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION KELOLA ARTIKEL -->
+            <div id="section-artikel" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                        <h2 id="artikel-form-title" class="text-xl font-bold mb-6 text-gray-800">Tulis Artikel</h2>
+                        <form id="artikel-form" class="space-y-4">
+                            <input type="hidden" id="artikel-id">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Judul Artikel</label>
+                                <input type="text" id="artikel-title" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Upload Banner</label>
+                                <input type="file" id="artikel-image-input" accept="image/*" class="mt-1 block w-full text-sm border border-gray-300 rounded-md p-2">
+                                <img id="artikel-preview" class="mt-2 hidden w-full h-32 object-cover rounded border">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Isi Artikel</label>
+                                <textarea id="artikel-content" rows="6" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"></textarea>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit" class="flex-1 bg-[#311105] text-white py-2 rounded-lg font-semibold">Terbitkan</button>
+                                <button type="button" id="btn-artikel-cancel" class="hidden flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg">Batal</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-xs uppercase text-gray-600">
+                                <tr>
+                                    <th class="px-6 py-3">Judul</th>
+                                    <th class="px-6 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="artikel-table-body" class="divide-y divide-gray-100"></tbody>
+                        </table>
+                        <div id="artikel-loading" class="p-10 text-center text-gray-400">Memuat artikel...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION KELOLA MITRA -->
+            <div id="section-mitra" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-md p-6 sticky top-24">
+                        <h2 class="text-xl font-bold mb-6 text-gray-800">Tambah Logo Mitra</h2>
+                        <form id="mitra-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Nama Mitra/Perusahaan</label>
+                                <input type="text" id="mitra-name" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Logo Mitra</label>
+                                <input type="file" id="mitra-image-input" accept="image/*" required class="mt-1 block w-full text-sm border border-gray-300 rounded-md p-2">
+                                <div id="mitra-preview-container" class="mt-2 hidden">
+                                    <img id="mitra-preview" src="" class="h-20 object-contain rounded border p-2 bg-gray-50">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full bg-[#311105] text-white py-2 rounded-lg font-semibold">Simpan Logo</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="p-6 border-b border-gray-100">
+                            <h2 class="text-xl font-bold text-gray-800">Daftar Logo Mitra</h2>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6" id="mitra-list">
+                            <!-- Data Mitra dimuat di sini -->
+                        </div>
+                        <div id="mitra-loading" class="p-10 text-center text-gray-400">Memuat data mitra...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { 
+            getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Konfigurasi Firebase Anda (Sama dengan di index.html)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOzzaPBhtRMEbDuNZUbPtxlwrJrK8exYE",
+            authDomain: "mydaf-kafgb.firebaseapp.com",
+            projectId: "mydaf-kafgb",
+            storageBucket: "mydaf-kafgb.firebasestorage.app",
+            messagingSenderId: "744858579208",
+            appId: "1:744858579208:web:ccc660687fb33f4c95fcbd"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); // Inisialisasi Firebase Auth
+        const menuCollection = collection(db, "menus");
+        const testiCollection = collection(db, "testimonials");
+        const artikelCollection = collection(db, "articles");
+        const mitraCollection = collection(db, "mitra");
+
+        // DOM Elements
+        const loadingInitial = document.getElementById('loading-initial');
+        const loginSection = document.getElementById('login-section');
+        const adminContent = document.getElementById('admin-content');
+        const loginForm = document.getElementById('login-form');
+        
+        // Tab switching logic
+        window.switchTab = (tab) => {
+            const sections = ['menu', 'testi', 'artikel', 'mitra'];
+            sections.forEach(s => {
+                const isCurrent = s === tab;
+                document.getElementById(`section-${s}`).classList.toggle('hidden', !isCurrent);
+                document.getElementById(`btn-tab-${s}`).className = isCurrent 
+                    ? 'flex-1 py-2 rounded-md bg-[#311105] text-white font-bold' 
+                    : 'flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold';
+            });
+        };
+
+        const loginEmailInput = document.getElementById('login-email');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginError = document.getElementById('login-error');
+        const logoutButton = document.getElementById('logout-button');
+        const userEmailSpan = document.getElementById('user-email');
+
+        const menuForm = document.getElementById('menu-form');
+        const tableBody = document.getElementById('menu-table-body');
+        const loadingState = document.getElementById('loading-state');
+        const btnCancel = document.getElementById('btn-cancel');
+
+        // Artikel Variables
+        let currentArtikelImage = '';
+        let currentMitraImage = '';
+
+        // Variabel untuk menangani Base64 Gambar
+        let currentImageBase64 = '';
+        const imageInput = document.getElementById('image-input');
+        const imagePreview = document.getElementById('image-preview');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+
+        // Fungsi Helper Kompresi Gambar
+        const compressImage = (file, maxWidth = 800) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const scale = maxWidth / img.width;
+                        canvas.width = maxWidth;
+                        canvas.height = img.height * scale;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        // Deteksi format: Jika PNG, gunakan image/webp agar transparansi terjaga.
+                        // Jika bukan, gunakan image/jpeg untuk kompresi maksimal pada foto.
+                        const outputType = (file.type === 'image/png' || file.type === 'image/webp') ? 'image/webp' : 'image/jpeg';
+                        const dataUrl = canvas.toDataURL(outputType, 0.8);
+                        resolve(dataUrl);
+                    };
+                };
+            });
+        };
+
+        // --- AUTHENTICATION LOGIC ---
+
+        // Check auth state on page load
+        onAuthStateChanged(auth, (user) => {
+            loadingInitial.classList.add('hidden'); // Hide initial loading screen
+            if (user) {
+                // User is signed in, show admin content
+                loginSection.classList.add('hidden');
+                adminContent.classList.remove('hidden');
+                userEmailSpan.innerText = `Logged in as: ${user.email}`;
+                loadMenuData(); // Load menu data only if logged in
+                loadTestiData(); // Load testimonial data
+                loadArtikelData(); // Load article data
+                loadMitraData(); // Load mitra data
+            } else {
+                // User is signed out, show login form
+                loginSection.classList.remove('hidden');
+                adminContent.classList.add('hidden');
+            }
+        });
+
+        // Logika Mengubah Gambar ke Base64
+        imageInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                loadingInitial.classList.remove('hidden'); // Show loading temporary
+                currentImageBase64 = await compressImage(file);
+                imagePreview.src = currentImageBase64;
+                imagePreviewContainer.classList.remove('hidden');
+                loadingInitial.classList.add('hidden');
+            }
+        });
+
+        // Handle Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = loginEmailInput.value;
+            const password = loginPasswordInput.value;
+            loginError.classList.add('hidden'); // Hide previous errors
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // UI will be updated by onAuthStateChanged listener
+            } catch (error) {
+                console.error("Login error:", error.code, error.message);
+                loginError.innerText = `Login Gagal: ${error.message}`;
+                loginError.classList.remove('hidden');
+            }
+        });
+
+        // Handle Logout
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // UI will be updated by onAuthStateChanged listener
+            } catch (error) {
+                console.error("Logout error:", error.message);
+                alert("Gagal logout: " + error.message);
+            }
+        });
+
+        // --- CRUD LOGIC (Moved into a function to be called after login) ---
+        async function loadMenuData() {
+            tableBody.innerHTML = ''; // Clear previous data
+            loadingState.classList.remove('hidden');
+
+            onSnapshot(menuCollection, (snapshot) => {
+                tableBody.innerHTML = '';
+                loadingState.classList.add('hidden');
+                document.getElementById('item-count').innerText = `${snapshot.size} Item`;
+
+                if (snapshot.empty) {
+                    tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">Belum ada menu.</td></tr>`;
+                    return;
+                }
+                
+                snapshot.forEach((doc) => {
+                    const item = doc.data();
+                    const id = doc.id;
+                    
+                    tableBody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <img src="${item.image}" class="w-12 h-12 rounded-lg object-cover border">
+                                    <div>
+                                        <div class="font-bold text-gray-800">${item.title}</div>
+                                        <div class="text-xs text-gray-500 truncate w-40">${item.description}</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-gray-700">
+                                    Rp ${Number(item.price).toLocaleString('id-ID')}
+                                </td>
+                                <td class="px-6 py-4">
+                                    ${item.isBestSeller ? '<span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 rounded">BEST SELLER</span>' : '-'}
+                                </td>
+                                <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="editMenu('${id}', '${item.title.replace(/'/g, "\\'")}', ${item.price}, \`${item.image}\`, '${item.description.replace(/'/g, "\\'")}', ${item.isBestSeller})" class="text-blue-600 hover:text-blue-800"><i class="fas fa-edit"></i></button>
+                                    <button onclick="deleteMenu('${id}')" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                });
+            });
+        }
+
+         // --- ARTIKEL LOGIC ---
+        document.getElementById('artikel-image-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentArtikelImage = await compressImage(file, 1200); // Banner lebih lebar
+                document.getElementById('artikel-preview').src = currentArtikelImage;
+                document.getElementById('artikel-preview').classList.remove('hidden');
+            }
+        });
+
+        function loadArtikelData() {
+            onSnapshot(artikelCollection, (snapshot) => {
+                const tbody = document.getElementById('artikel-table-body');
+                document.getElementById('artikel-loading').classList.add('hidden');
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4 font-bold text-gray-800">${data.title}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="editArtikel('${doc.id}', '${data.title.replace(/'/g, "\\'")}', \`${data.image}\`, \`${data.content}\`)" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteArtikel('${doc.id}')" class="text-red-600"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        document.getElementById('artikel-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('artikel-id').value;
+            const title = document.getElementById('artikel-title').value;
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+            
+            const data = {
+                title: title,
+                slug: slug,
+                image: currentArtikelImage,
+                content: document.getElementById('artikel-content').value,
+                createdAt: new Date()
+            };
+
+            try {
+                if (id) await updateDoc(doc(db, "articles", id), data);
+                else await addDoc(artikelCollection, data);
+                resetArtikelForm();
+                alert("Artikel berhasil disimpan!");
+            } catch (err) { alert(err.message); }
+        });
+
+        window.editArtikel = (id, title, image, content) => {
+            document.getElementById('artikel-id').value = id;
+            document.getElementById('artikel-title').value = title;
+            currentArtikelImage = image;
+            document.getElementById('artikel-preview').src = image;
+            document.getElementById('artikel-preview').classList.remove('hidden');
+            document.getElementById('artikel-content').value = content;
+            document.getElementById('artikel-form-title').innerText = "Edit Artikel";
+            document.getElementById('btn-artikel-cancel').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteArtikel = async (id) => {
+            if (confirm("Hapus artikel?")) await deleteDoc(doc(db, "articles", id));
+        };
+
+        function resetArtikelForm() {
+            document.getElementById('artikel-form').reset();
+            document.getElementById('artikel-id').value = '';
+            currentArtikelImage = '';
+            document.getElementById('artikel-preview').classList.add('hidden');
+            document.getElementById('artikel-form-title').innerText = "Tulis Artikel";
+            document.getElementById('btn-artikel-cancel').classList.add('hidden');
+        }
+        document.getElementById('btn-artikel-cancel').addEventListener('click', resetArtikelForm);
+
+        // --- TESTIMONIAL CRUD ---
+        function loadTestiData() {
+            onSnapshot(testiCollection, (snapshot) => {
+                const tbody = document.getElementById('testi-table-body');
+                document.getElementById('testi-loading').classList.add('hidden');
+                tbody.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="px-6 py-4">
+                                <div class="font-bold">${data.name}</div>
+                                <div class="text-xs text-gray-500">${data.role}</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-600 truncate max-w-xs">${data.content}</td>
+                            <td class="px-6 py-4 text-right">
+                                <button onclick="editTesti('${doc.id}', '${data.name.replace(/'/g, "\\'")}', '${data.role.replace(/'/g, "\\'")}', \`${data.content}\`, ${data.rating})" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button>
+                                <button onclick="deleteTesti('${doc.id}')" class="text-red-600"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        document.getElementById('testi-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('testi-id').value;
+            const data = {
+                name: document.getElementById('testi-name').value,
+                role: document.getElementById('testi-role').value,
+                content: document.getElementById('testi-content').value,
+                rating: Number(document.getElementById('testi-rating').value)
+            };
+            try {
+                if (id) await updateDoc(doc(db, "testimonials", id), data);
+                else await addDoc(testiCollection, data);
+                resetTestiForm();
+            } catch (err) { alert("Error: " + err.message); }
+        });
+
+        window.editTesti = (id, name, role, content, rating) => {
+            document.getElementById('testi-id').value = id;
+            document.getElementById('testi-name').value = name;
+            document.getElementById('testi-role').value = role;
+            document.getElementById('testi-content').value = content;
+            document.getElementById('testi-rating').value = rating;
+            document.getElementById('testi-form-title').innerText = "Edit Testimoni";
+            document.getElementById('btn-testi-cancel').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteTesti = async (id) => {
+            if (confirm("Hapus testimoni ini?")) await deleteDoc(doc(db, "testimonials", id));
+        };
+
+        function resetTestiForm() {
+            document.getElementById('testi-form').reset();
+            document.getElementById('testi-id').value = '';
+            document.getElementById('testi-form-title').innerText = "Tambah Testimoni";
+            document.getElementById('btn-testi-cancel').classList.add('hidden');
+        }
+        document.getElementById('btn-testi-cancel').addEventListener('click', resetTestiForm);
+
+        // --- MITRA LOGIC ---
+        document.getElementById('mitra-image-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentMitraImage = await compressImage(file, 400); // Logo tidak butuh lebar besar
+                document.getElementById('mitra-preview').src = currentMitraImage;
+                document.getElementById('mitra-preview-container').classList.remove('hidden');
+            }
+        });
+
+        function loadMitraData() {
+            onSnapshot(mitraCollection, (snapshot) => {
+                const container = document.getElementById('mitra-list');
+                document.getElementById('mitra-loading').classList.add('hidden');
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    container.innerHTML += `
+                        <div class="relative group bg-gray-50 p-4 rounded-lg border flex flex-col items-center">
+                            <img src="${data.image}" class="h-16 object-contain mb-2">
+                            <p class="text-[10px] text-gray-500 text-center uppercase font-bold">${data.name}</p>
+                            <button onclick="deleteMitra('${doc.id}')" class="absolute -top-2 -right-2 bg-red-600 text-white w-6 h-6 rounded-full text-xs shadow-lg opacity-0 group-hover:opacity-100 transition">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        document.getElementById('mitra-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentMitraImage) return alert("Pilih logo dulu");
+
+            try {
+                await addDoc(mitraCollection, {
+                    name: document.getElementById('mitra-name').value,
+                    image: currentMitraImage,
+                    createdAt: new Date()
+                });
+                document.getElementById('mitra-form').reset();
+                currentMitraImage = '';
+                document.getElementById('mitra-preview-container').classList.add('hidden');
+                alert("Mitra berhasil ditambahkan!");
+            } catch (err) { alert(err.message); }
+        });
+
+        window.deleteMitra = async (id) => {
+            if (confirm("Hapus mitra ini?")) {
+                try {
+                    await deleteDoc(doc(db, "mitra", id));
+                } catch (err) { alert(err.message); }
+            }
+        };
+
+        // --- CREATE & UPDATE ---
+        menuForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('menu-id').value;
+
+            if (!currentImageBase64) {
+                alert("Silakan pilih gambar terlebih dahulu.");
+                return;
+            }
+
+            const data = {
+                title: document.getElementById('title').value,
+                price: Number(document.getElementById('price').value),
+                image: currentImageBase64,
+                description: document.getElementById('description').value,
+                isBestSeller: document.getElementById('isBestSeller').checked,
+                updatedAt: new Date() // Menambahkan timestamp update
+            };
+
+            try {
+                if (id) {
+                    // Update
+                    await updateDoc(doc(db, "menus", id), data);
+                    alert("Menu berhasil diperbarui!");
+                } else {
+                    // Create
+                    await addDoc(menuCollection, data);
+                    alert("Menu berhasil ditambahkan!");
+                }
+                resetForm();
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                alert("Gagal menyimpan data: " + error.message);
+            }
+        });
+
+        // --- DELETE ---
+        window.deleteMenu = async (id) => {
+            if (confirm("Apakah Anda yakin ingin menghapus menu ini?")) {
+                try {
+                    await deleteDoc(doc(db, "menus", id));
+                } catch (error) {
+                    alert("Gagal menghapus: " + error.message);
+                }
+            }
+        };
+
+        // --- EDIT MODE ---
+        window.editMenu = (id, title, price, image, description, isBestSeller) => {
+            document.getElementById('menu-id').value = id;
+            document.getElementById('title').value = title;
+            document.getElementById('price').value = price;
+            
+            // Tampilkan preview gambar yang sudah ada
+            currentImageBase64 = image;
+            imagePreview.src = image;
+            imagePreviewContainer.classList.remove('hidden');
+
+            document.getElementById('description').value = description;
+            document.getElementById('isBestSeller').checked = isBestSeller;
+
+            document.getElementById('form-title').innerText = "Edit Menu";
+            document.getElementById('btn-submit').innerText = "Simpan Perubahan";
+            btnCancel.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.resetForm = () => {
+            menuForm.reset();
+            document.getElementById('menu-id').value = '';
+            
+            // Reset gambar dan preview
+            currentImageBase64 = '';
+            imageInput.value = '';
+            imagePreviewContainer.classList.add('hidden');
+
+            document.getElementById('form-title').innerText = "Tambah Menu Baru";
+            document.getElementById('btn-submit').innerText = "Simpan Menu";
+            btnCancel.classList.add('hidden');
+            loginError.classList.add('hidden'); // Clear login error on form reset
+        };
+
+        btnCancel.addEventListener('click', resetForm);
+
+    </script>
+
+</body>
+</html>
