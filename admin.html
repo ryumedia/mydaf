@@ -491,7 +491,7 @@
                         <tr>
                             <td class="px-6 py-4 font-bold text-gray-800">${data.title}</td>
                             <td class="px-6 py-4 text-right">
-                                <button onclick="editArtikel('${doc.id}', '${data.title.replace(/'/g, "\\'")}', \`${data.image}\`, \`${data.content}\`)" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button>
+                                <button onclick="editArtikel('${doc.id}', \`${data.title.replace(/`/g, "\\`")}\`, \`${data.image}\`, \`${data.content.replace(/`/g, "\\`")}\`)" class="text-blue-600 mr-2"><i class="fas fa-edit"></i></button>
                                 <button onclick="deleteArtikel('${doc.id}')" class="text-red-600"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
