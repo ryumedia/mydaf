@@ -60,6 +60,7 @@
                 <button onclick="switchTab('testi')" id="btn-tab-testi" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Testimoni</button>
                 <button onclick="switchTab('artikel')" id="btn-tab-artikel" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Artikel</button>
                 <button onclick="switchTab('mitra')" id="btn-tab-mitra" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Mitra</button>
+                <button onclick="switchTab('hero')" id="btn-tab-hero" class="flex-1 py-2 rounded-md bg-gray-100 text-gray-600 font-bold transition hover:bg-gray-200">Hero</button>
             </div>
 
             <!-- SECTION KELOLA MENU -->
@@ -191,6 +192,58 @@
                 </div>
             </div>
 
+            <!-- SECTION KELOLA HERO -->
+            <div id="section-hero" class="hidden max-w-4xl mx-auto">
+                <div class="bg-white rounded-xl shadow-md p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Edit Hero Section</h2>
+                    <form id="hero-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Judul Utama (Heading)</label>
+                                    <textarea id="hero-heading" required rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#311105] focus:border-[#311105]" placeholder="Rasa Lezat, Harga Hemat"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Sub-judul</label>
+                                    <textarea id="hero-subheading" required rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-[#311105] focus:border-[#311105]" placeholder="Solusi katering terbaik..."></textarea>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">Gambar Hero</label>
+                                    <input type="file" id="hero-image-input" accept="image/*" class="mt-1 block w-full text-sm border border-gray-300 rounded-md p-2">
+                                    <div id="hero-preview-container" class="mt-2">
+                                        <img id="hero-preview" src="" class="w-full h-40 object-cover rounded-lg border shadow-inner bg-gray-50">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h3 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Info Tambahan (Checklist)</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Poin 1</label>
+                                    <input type="text" id="hero-info1" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Poin 2</label>
+                                    <input type="text" id="hero-info2" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Poin 3</label>
+                                    <input type="text" id="hero-info3" class="w-full border border-gray-300 rounded-md p-2 text-sm">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-4">
+                            <button type="submit" class="bg-[#311105] text-white px-8 py-3 rounded-lg font-bold hover:bg-black transition shadow-lg">Simpan Perubahan Hero</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- SECTION KELOLA ARTIKEL -->
             <div id="section-artikel" class="grid grid-cols-1 lg:grid-cols-3 gap-8 hidden">
                 <div class="lg:col-span-1">
@@ -274,7 +327,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { 
-            getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot 
+            getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, onSnapshot, setDoc, getDoc
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { 
             getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
@@ -306,7 +359,7 @@
         
         // Tab switching logic
         window.switchTab = (tab) => {
-            const sections = ['menu', 'testi', 'artikel', 'mitra'];
+            const sections = ['menu', 'testi', 'artikel', 'mitra', 'hero'];
             sections.forEach(s => {
                 const isCurrent = s === tab;
                 document.getElementById(`section-${s}`).classList.toggle('hidden', !isCurrent);
@@ -330,6 +383,7 @@
         // Artikel Variables
         let currentArtikelImage = '';
         let currentMitraImage = '';
+        let currentHeroImage = '';
 
         // Variabel untuk menangani Base64 Gambar
         let currentImageBase64 = '';
@@ -378,6 +432,7 @@
                 loadTestiData(); // Load testimonial data
                 loadArtikelData(); // Load article data
                 loadMitraData(); // Load mitra data
+                loadHeroData(); // Load hero data
             } else {
                 // User is signed out, show login form
                 loginSection.classList.remove('hidden');
@@ -666,6 +721,56 @@
                 } catch (err) { alert(err.message); }
             }
         };
+
+        // --- HERO LOGIC ---
+        async function loadHeroData() {
+            const heroDoc = await getDoc(doc(db, "settings", "hero"));
+            if (heroDoc.exists()) {
+                const data = heroDoc.data();
+                document.getElementById('hero-heading').value = data.heading || '';
+                document.getElementById('hero-subheading').value = data.subheading || '';
+                document.getElementById('hero-info1').value = data.info1 || '';
+                document.getElementById('hero-info2').value = data.info2 || '';
+                document.getElementById('hero-info3').value = data.info3 || '';
+                if (data.image) {
+                    currentHeroImage = data.image;
+                    document.getElementById('hero-preview').src = data.image;
+                }
+            }
+        }
+
+        document.getElementById('hero-image-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                currentHeroImage = await compressImage(file, 1200);
+                document.getElementById('hero-preview').src = currentHeroImage;
+            }
+        });
+
+        document.getElementById('hero-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingInitial.classList.remove('hidden');
+            
+            const data = {
+                heading: document.getElementById('hero-heading').value,
+                subheading: document.getElementById('hero-subheading').value,
+                info1: document.getElementById('hero-info1').value,
+                info2: document.getElementById('hero-info2').value,
+                info3: document.getElementById('hero-info3').value,
+                image: currentHeroImage,
+                updatedAt: new Date()
+            };
+
+            try {
+                await setDoc(doc(db, "settings", "hero"), data);
+                alert("Hero Section berhasil diperbarui!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                loadingInitial.classList.add('hidden');
+            }
+        });
+
 
         // --- CREATE & UPDATE ---
         menuForm.addEventListener('submit', async (e) => {

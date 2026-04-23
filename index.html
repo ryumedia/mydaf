@@ -17,7 +17,7 @@
     <!-- Firebase SDK (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, query, limit, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, query, limit, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Konfigurasi Firebase Anda (Dapatkan dari Console Firebase)
         const firebaseConfig = {
@@ -142,11 +142,30 @@
             }
         }
 
+        // Fungsi untuk mengambil data Hero
+        async function loadHero() {
+            try {
+                const heroDoc = await getDoc(doc(db, "settings", "hero"));
+                if (heroDoc.exists()) {
+                    const data = heroDoc.data();
+                    if (data.heading) document.getElementById('hero-heading-text').innerHTML = data.heading.replace(/\n/g, '<br>');
+                    if (data.subheading) document.getElementById('hero-subheading-text').innerText = data.subheading;
+                    if (data.image) document.getElementById('hero-main-image').src = data.image;
+                    if (data.info1) document.getElementById('hero-badge-1').innerText = data.info1;
+                    if (data.info2) document.getElementById('hero-badge-2').innerText = data.info2;
+                    if (data.info3) document.getElementById('hero-badge-3').innerText = data.info3;
+                }
+            } catch (error) {
+                console.error("Error loading hero: ", error);
+            }
+        }
+
         // Jalankan langsung (karena module script otomatis bersifat deferred)
         loadMenu();
         loadTestimonials();
         loadArticles();
         loadMitra();
+        loadHero();
     </script>
 
     <style>
@@ -199,14 +218,11 @@
         <div class="container mx-auto px-4 flex flex-col-reverse md:flex-row items-center">
             
             <!-- Teks Promosi -->
-            <div class="w-full md:w-1/2 text-center md:text-left space-y-6">
-                <h1 class="text-4xl md:text-6xl font-bold leading-tight text-[#765826]">
-                    Rasa Lezat, <br>
-                    <span class="text-[#311105]">Harga Hemat</span>
+            <div class="w-full md:w-[65%] text-center md:text-left space-y-6">
+                <h1 id="hero-heading-text" class="text-4xl md:text-6xl font-bold leading-tight text-[#765826]">
+                    Rasa Lezat, <span class="text-[#311105]">Harga Hemat</span>
                 </h1>
-                <p class="text-lg text-gray-600">
-                    Solusi katering terbaik untuk acara spesial, kantor, atau harian. Nikmati masakan rumahan dengan kualitas restoran bintang lima.
-                </p>
+                <p id="hero-subheading-text" class="text-lg text-gray-600"></p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <a href="#menu" class="bg-[#311105] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#edc938] hover:text-[#311105] transition text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                         Lihat Menu
@@ -217,17 +233,17 @@
                 </div>
                 <!-- Info Tambahan -->
                 <div class="pt-4 flex items-center justify-center md:justify-start gap-4 text-sm text-gray-500">
-                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> Halal 100%</span>
-                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> Bahan Segar</span>
-                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> Higienis</span>
+                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-1">Halal 100%</span></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-2">Bahan Segar</span></span>
+                    <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-3">Higienis</span></span>
                 </div>
             </div>
 
             <!-- Gambar Hero (Placeholder) -->
-            <div class="w-full md:w-1/2 mb-10 md:mb-0 flex justify-center">
+            <div class="w-full md:w-[35%] mb-10 md:mb-0 flex justify-center">
                 <div class="relative">
                     <div class="absolute inset-0 bg-[#edc938] rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
-                    <img src="https://blogger.googleusercontent.com/img/a/AVvXsEhtEh5cqwWN90lg0bJccUgS5BCyJnknJf09eyrnSqRGpzHA8L9O-laz0rnXgqgCZ1sniluDe884WF9ytn5tXL5WTlGuxCRTh3ZQEHYNX4qGyz0AIlKEw6JAeW_6nNMqYBbDr-kkaYsuauOpaVOmeN9f7_yH7cOAGHOQNn_x02g6lzC82mYxNUmxD3UucDE" alt="Makanan Lezat" class="relative rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
+                    <img id="hero-main-image" src="" alt="Makanan Lezat" class="relative rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
                 </div>
             </div>
         </div>
@@ -310,9 +326,9 @@
                 <button class="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-bold text-lg transition flex items-center gap-2">
                     <i class="fab fa-whatsapp text-2xl"></i> Chat WhatsApp
                 </button>
-                <button class="bg-transparent border border-white hover:bg-white hover:text-gray-900 text-white px-8 py-3 rounded-lg font-bold text-lg transition">
+                <a href="https://wa.me/c/6285795623791" target="_blank" class="bg-transparent border border-white hover:bg-white hover:text-gray-900 text-white px-8 py-3 rounded-lg font-bold text-lg transition flex items-center justify-center">
                     Lihat Katalog Lengkap
-                </button>
+                </a>
             </div>
         </div>
     </section>
@@ -389,8 +405,8 @@
         const waButton = document.querySelector('.fa-whatsapp').parentElement;
         if (waButton) { // Safety check untuk tombol WA
             waButton.addEventListener('click', () => {
-                const phoneNumber = "6281234567890"; // Ganti dengan nomor WA Anda
-                const message = "Halo, saya ingin bertanya tentang paket katering.";
+                const phoneNumber = "6285795623791"; // Ganti dengan nomor WA Anda
+                const message = "Halo, saya ingin bertanya tentang produk my daf.";
                 window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
             });
         }
