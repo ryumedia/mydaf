@@ -148,19 +148,24 @@
                 const scriptsDoc = await getDoc(doc(db, "settings", "scripts"));
                 if (scriptsDoc.exists() && scriptsDoc.data().headCode) {
                     const headCode = scriptsDoc.data().headCode;
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = headCode;
                     
-                    Array.from(tempDiv.childNodes).forEach(node => {
+                    // Gunakan DOMParser agar browser mengenali konteks meta/link tag dengan benar
+                    const parser = new DOMParser();
+                    const docParsed = parser.parseFromString(`<html><head>${headCode}</head><body></body></html>`, 'text/html');
+                    const nodes = docParsed.head.childNodes;
+                    
+                    // Masukkan dari belakang ke depan dengan prepend agar urutan tetap sama di paling atas <head>
+                    for (let i = nodes.length - 1; i >= 0; i--) {
+                        const node = nodes[i];
                         if (node.nodeName === 'SCRIPT') {
                             const script = document.createElement('script');
                             Array.from(node.attributes).forEach(attr => script.setAttribute(attr.name, attr.value));
                             script.textContent = node.textContent;
-                            document.head.appendChild(script);
-                        } else {
-                            document.head.appendChild(node.cloneNode(true));
+                            document.head.prepend(script);
+                        } else if (node.nodeType === 1) { // Element node (meta, link, dll)
+                            document.head.prepend(node.cloneNode(true));
                         }
-                    });
+                    }
                 }
             } catch (error) {
                 console.error("Error injecting head scripts: ", error);
