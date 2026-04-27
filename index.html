@@ -1,20 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <!-- Histats.com  (div with counter) --><div id="histats_counter"></div>
-    <!-- Histats.com  START  (aync)-->
-    <script type="text/javascript">var _Hasync= _Hasync|| [];
-    _Hasync.push(['Histats.start', '1,5022602,4,6,200,40,00010000']);
-    _Hasync.push(['Histats.fasi', '1']);
-    _Hasync.push(['Histats.track_hits', '']);
-    (function() {
-    var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
-    hs.src = ('//s10.histats.com/js15_as.js');
-    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
-    })();</script>
-    <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5022602&101" alt="" border="0"></a></noscript>
-    <!-- Histats.com  END  -->
-     
     <meta name="msvalidate.01" content="EBC655347EF08F3BF703A65E7DD1279B" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -164,12 +150,14 @@
                 if (scriptsDoc.exists() && scriptsDoc.data().headCode) {
                     const headCode = scriptsDoc.data().headCode;
                     
-                    // Gunakan DOMParser agar browser mengenali konteks meta/link tag dengan benar
                     const parser = new DOMParser();
-                    const docParsed = parser.parseFromString(`<html><head>${headCode}</head><body></body></html>`, 'text/html');
-                    const nodes = docParsed.head.childNodes;
+                    // Parsing headCode secara langsung tanpa membungkusnya dengan tag html/head mentah
+                    // untuk menghindari kebingungan parser browser
+                    const docParsed = parser.parseFromString(headCode, 'text/html');
+                    // Ambil semua node baik dari head maupun body hasil parsing
+                    const nodes = [...docParsed.head.childNodes, ...docParsed.body.childNodes];
                     
-                    // Masukkan dari belakang ke depan dengan prepend agar urutan tetap sama di paling atas <head>
+                    // Masukkan secara berurutan ke bagian atas <head> dokumen utama
                     for (let i = nodes.length - 1; i >= 0; i--) {
                         const node = nodes[i];
                         if (node.nodeName === 'SCRIPT') {
@@ -189,19 +177,36 @@
 
         // Fungsi untuk mengambil data Hero
         async function loadHero() {
+            const heading = document.getElementById('hero-heading-text');
+            const subheading = document.getElementById('hero-subheading-text');
+            const badges = document.getElementById('hero-badges-container');
+            const mainImage = document.getElementById('hero-main-image');
+
             try {
                 const heroDoc = await getDoc(doc(db, "settings", "hero"));
                 if (heroDoc.exists()) {
                     const data = heroDoc.data();
-                    if (data.heading) document.getElementById('hero-heading-text').innerHTML = data.heading.replace(/\n/g, '<br>');
-                    if (data.subheading) document.getElementById('hero-subheading-text').innerText = data.subheading;
-                    if (data.image) document.getElementById('hero-main-image').src = data.image;
+                    if (data.heading) heading.innerHTML = data.heading.replace(/\n/g, '<br>');
+                    if (data.subheading) subheading.innerText = data.subheading;
+                    if (data.image) {
+                        mainImage.src = data.image;
+                        mainImage.classList.remove('opacity-0');
+                    }
                     if (data.info1) document.getElementById('hero-badge-1').innerText = data.info1;
                     if (data.info2) document.getElementById('hero-badge-2').innerText = data.info2;
                     if (data.info3) document.getElementById('hero-badge-3').innerText = data.info3;
+                } else {
+                    // Fallback jika tidak ada data di database
+                    heading.innerHTML = 'Rasa Lezat, <span class="text-[#311105]">Harga Hemat</span>';
                 }
             } catch (error) {
                 console.error("Error loading hero: ", error);
+                heading.innerHTML = 'Rasa Lezat, <span class="text-[#311105]">Harga Hemat</span>';
+            } finally {
+                // Munculkan konten dengan efek fade in setelah data siap
+                heading.classList.remove('opacity-0');
+                subheading.classList.remove('opacity-0');
+                badges.classList.remove('opacity-0');
             }
         }
 
@@ -265,10 +270,8 @@
             
             <!-- Teks Promosi -->
             <div class="w-full md:w-[65%] text-center md:text-left space-y-6">
-                <h1 id="hero-heading-text" class="text-4xl md:text-6xl font-bold leading-tight text-[#765826]">
-                    Rasa Lezat, <span class="text-[#311105]">Harga Hemat</span>
-                </h1>
-                <p id="hero-subheading-text" class="text-lg text-gray-600"></p>
+                <h1 id="hero-heading-text" class="text-4xl md:text-6xl font-bold leading-tight text-[#765826] opacity-0 transition-opacity duration-700"></h1>
+                <p id="hero-subheading-text" class="text-lg text-gray-600 opacity-0 transition-opacity duration-700"></p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <a href="#menu" class="bg-[#311105] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#edc938] hover:text-[#311105] transition text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1">
                         Lihat Menu
@@ -278,7 +281,7 @@
                     </a>
                 </div>
                 <!-- Info Tambahan -->
-                <div class="pt-4 flex items-center justify-center md:justify-start gap-4 text-sm text-gray-500">
+                <div id="hero-badges-container" class="pt-4 flex items-center justify-center md:justify-start gap-4 text-sm text-gray-500 opacity-0 transition-opacity duration-700">
                     <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-1">Halal 100%</span></span>
                     <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-2">Bahan Segar</span></span>
                     <span class="flex items-center gap-1"><i class="fas fa-check-circle text-green-500"></i> <span id="hero-badge-3">Higienis</span></span>
@@ -289,7 +292,7 @@
             <div class="w-full md:w-[35%] mb-10 md:mb-0 flex justify-center">
                 <div class="relative">
                     <div class="absolute inset-0 bg-[#edc938] rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
-                    <img id="hero-main-image" src="" alt="Makanan Lezat" class="relative rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-500">
+                    <img id="hero-main-image" src="" alt="Makanan Lezat" class="relative rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 transition duration-700 opacity-0">
                 </div>
             </div>
         </div>
@@ -415,6 +418,22 @@
             </div>
             <div class="border-t border-gray-800 pt-8 text-center text-sm">
                 <p>&copy; 2025 MyDAF. All rights reserved.</p>
+                
+                <!-- Histats.com  (div with counter) -->
+                <div id="histats_counter" class="mt-4 flex justify-center"></div>
+                
+                <!-- Histats.com  START  (aync)-->
+                <script type="text/javascript">var _Hasync= _Hasync|| [];
+                _Hasync.push(['Histats.start', '1,5022602,4,6,200,40,00010000']);
+                _Hasync.push(['Histats.fasi', '1']);
+                _Hasync.push(['Histats.track_hits', '']);
+                (function() {
+                var hs = document.createElement('script'); hs.type = 'text/javascript'; hs.async = true;
+                hs.src = ('//s10.histats.com/js15_as.js');
+                (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(hs);
+                })();</script>
+                <noscript><a href="/" target="_blank"><img  src="//sstatic1.histats.com/0.gif?5022602&101" alt="" border="0"></a></noscript>
+                <!-- Histats.com  END  -->
             </div>
         </div>
     </footer>

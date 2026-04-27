@@ -59,12 +59,14 @@
                 if (scriptsDoc.exists() && scriptsDoc.data().headCode) {
                     const headCode = scriptsDoc.data().headCode;
                     
-                    // Gunakan DOMParser agar browser mengenali konteks meta/link tag dengan benar
                     const parser = new DOMParser();
-                    const docParsed = parser.parseFromString(`<html><head>${headCode}</head><body></body></html>`, 'text/html');
-                    const nodes = docParsed.head.childNodes;
+                    // Parsing headCode secara langsung tanpa membungkusnya dengan tag html/head mentah
+                    // untuk menghindari kebingungan parser browser
+                    const docParsed = parser.parseFromString(headCode, 'text/html');
+                    // Ambil semua node baik dari head maupun body hasil parsing
+                    const nodes = [...docParsed.head.childNodes, ...docParsed.body.childNodes];
                     
-                    // Masukkan dari belakang ke depan dengan prepend agar urutan tetap sama di paling atas <head>
+                    // Masukkan secara berurutan ke bagian atas <head> dokumen utama
                     for (let i = nodes.length - 1; i >= 0; i--) {
                         const node = nodes[i];
                         if (node.nodeName === 'SCRIPT') {
